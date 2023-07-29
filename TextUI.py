@@ -118,7 +118,7 @@ class TextUI:
 
         print("\n\n\n\n\n-Donation Menu-")
 
-        title = str(input("Press 0 to exit from Donation Menu at anytime: "))
+        print("Press 0 to exit from Donation Menu at anytime: ")
 
         title = None
         author = None
