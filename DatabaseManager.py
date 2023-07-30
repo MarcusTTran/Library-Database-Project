@@ -113,7 +113,7 @@ class DatabaseManager:
 
 
 
-    def addPersonnel(self, volunteerInformation):
+    def addVolunteer(self, volunteerInformation):
 
         sqlVolunteerInsert = '''INSERT INTO Personnel(employeeID, role, name, emailAddress)
                 VALUES((SELECT IFNULL(MAX(employeeID) + 1, 0) FROM Personnel), "Volunteer",?,?)'''
