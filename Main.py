@@ -22,6 +22,8 @@ def main():
     ui = TextUI(databaseManager)
     ui.start()
 
+    print("Exiting Application")
+
 
 if __name__ == "__main__":
     main()

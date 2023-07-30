@@ -95,6 +95,28 @@ class DatabaseManager:
 
 
 
+    def getUserIDs(self):
+        sqlUserId = '''SELECT * from User'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlUserId)
+        rows = cursor.fetchall()
+
+        return rows
+
+
+    def getNameFromUserID(self, userID):
+        sqlUserName = '''SELECT name from User where userID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlUserName, (userID,))
+        rows = cursor.fetchall()[0]
+
+        return rows[0]
+
+
     def donateAnItem(self, insertInformation):
 
         sqlDonateItem = '''INSERT INTO Item(itemID, name, author, type, releaseDate, available, upcomingAddition)
@@ -138,3 +160,19 @@ class DatabaseManager:
         rows = cursor.fetchall()
 
         return rows
+
+
+    def searchForEvent(self, searchKey):
+        sqlSearchAllEvents = '''SELECT eventID, eventName, datetime(event) FROM Event'''
+        sqlSearchEventsWithSubstring = '''SELECT eventID, eventName, datetime(event) FROM event WHERE eventName LIKE :search'''
+        cursor = self.connection.cursor()
+
+        if (searchKey == ""):
+            cursor.execute(sqlSearchAllEvents)
+        else:
+            cursor.execute(sqlSearchEventsWithSubstring, {"search": "%" + searchKey + "%"})
+
+        eventsLst = cursor.fetchall()
+        return eventsLst
+
+
