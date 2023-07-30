@@ -317,3 +317,46 @@ class TextUI:
         print('\n')
 
         input("Press any key to exit: ")
+
+    def searchLibEvents(self):
+        tableName = "Event"
+        userExit = False
+        rows = self.manager.listTable(tableName)
+        columnNames = self.manager.getColumnNamesFromTable(tableName)
+
+        while not userExit:
+            # print all events
+            print("\n\n\n\n\n-Events Catalogue- \n")
+            self.printCatalogue(rows, columnNames)
+
+            options = {
+                1: "Search event by name",
+                2: "Search event by type",
+                3: "Exit catalogue"
+            }
+
+            for i in options:
+                print("{}. {}".format(i, options[i]))
+
+            eventMenuSelection = TextMenu.getMenuUserInput(options)
+            if eventMenuSelection == 1:
+                eventType = "name"
+                self.searchEventHandler(eventType, columnNames)
+            elif eventMenuSelection == 2:
+                eventType = "type"
+                self.searchEventHandler(eventType, columnNames)
+            elif eventMenuSelection == 3:
+                userExit = True
+            else:
+                print("Invalid option selected")
+
+
+    def searchEventHandler(self, eventType, columnNames):
+        if eventType.lower() == "type":
+            eventSearchKey = input("Please enter an event name:")
+        else:
+            eventSearchKey = input("Please enter an event type:")
+
+        rows = self.manager.searchForEvent(eventSearchKey, eventType)
+        self.printCatalogue(rows, columnNames)
+        input("Press any key to exit: ")

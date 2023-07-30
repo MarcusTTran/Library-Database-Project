@@ -17,6 +17,15 @@ class DatabaseManager:
 
         self.connection = connection
 
+    def listTable(self, tableName):
+        cursor = self.connection.cursor()
+        sqlListTableContents = '''SELECT * FROM ?'''
+        cursor.execute(sqlListTableContents, tableName)
+
+        allRows = cursor.fetchall()
+        return allRows
+
+
     def getAllCatalogue(self):
 
         searchAll = '''SELECT * FROM Item'''
@@ -162,15 +171,18 @@ class DatabaseManager:
         return rows
 
 
-    def searchForEvent(self, searchKey):
-        sqlSearchAllEvents = '''SELECT eventID, eventName, datetime(event) FROM Event'''
-        sqlSearchEventsWithSubstring = '''SELECT eventID, eventName, datetime(event) FROM event WHERE eventName LIKE :search'''
+    def searchForEvent(self, searchKey, searchType):
         cursor = self.connection.cursor()
+        # sqlSearchAllEvents = '''SELECT eventID, eventName, datetime(eventDateTime) FROM Event'''
+        sqlSearchEventNameWithSubstring = '''SELECT eventID, eventName, datetime(eventDateTime) FROM event WHERE eventName LIKE :search'''
+        sqlSearchEventTypeWithSubstring = '''SELECT eventID, eventName, datetime(eventDateTime) FROM event WHERE eventType LIKE :search'''
 
-        if (searchKey == ""):
-            cursor.execute(sqlSearchAllEvents)
-        else:
-            cursor.execute(sqlSearchEventsWithSubstring, {"search": "%" + searchKey + "%"})
+        query = sqlSearchEventTypeWithSubstring if searchType.lower == "type" else sqlSearchEventNameWithSubstring
+
+        # if searchType == "ALL":
+        #     cursor.execute(sqlSearchAllEvents)
+        # else:
+        cursor.execute(query, {"search": "%" + searchKey + "%"})
 
         eventsLst = cursor.fetchall()
         return eventsLst
