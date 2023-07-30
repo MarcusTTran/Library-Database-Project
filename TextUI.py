@@ -25,8 +25,8 @@ class TextUI:
                 4: "Donate library items",
                 5: "Search library events",
                 6: "Register for library events",
-                7: "Volunteer at XPL",
-                8: "Ask for help from a librarian",
+                7: "Volunteer at X Public Library",
+                8: "Get help from a librarian",
                 9: "Exit application"
             }
 
@@ -48,7 +48,7 @@ class TextUI:
             elif menuSelection == 6:
                 print("Register")
             elif menuSelection == 7:
-                self.addPersonnel()
+                self.addVolunteer()
             elif menuSelection == 8:
                 self.listPersonnel()
             elif menuSelection == 9:
@@ -57,6 +57,25 @@ class TextUI:
             else:
                 print("Invalid option selected")
 
+
+
+    def printCatalogue(self, rows, columnNames):
+        i = 0
+        while i < len(columnNames):
+            print("{0:20}".format(columnNames[i]), end='')
+            i = i + 1
+        print('')
+
+        i = 0
+        for row in rows:
+            while i < len(columnNames):
+                columnAttribute = str(row[i])
+                shortenedString = columnAttribute[:19]
+                print("{0:20}".format(shortenedString), end='')
+                i = i + 1
+            print('')
+            i = 0
+        print('\n')
 
 
 
@@ -70,30 +89,14 @@ class TextUI:
         while not userExit:
             print("\n\n\n\n\n-Library Catalogue-")
 
-            # print columns
-            i = 0
-            while i < len(columnNames):
-                print("{0:20}".format(columnNames[i]), end='')
-                i = i + 1
-            print('')
+            # print columns and items
+            self.printCatalogue(rows, columnNames)
 
-
-            i = 0
-            for row in rows:
-                while i < len(columnNames):
-                    columnAttribute = str(row[i])
-                    shortenedString = columnAttribute[:19]
-                    print("{0:20}".format(shortenedString), end='')
-                    i = i + 1
-                print('')
-                i = 0
-            print('\n')
 
             options = {
                 1: "Search item by title",
                 2: "Search item by author",
-                3: "Search item by type",
-                4: "Exit catalogue"
+                3: "Exit catalogue"
             }
 
             for i in options:
@@ -102,15 +105,35 @@ class TextUI:
             menuSelection = TextMenu.getMenuUserInput(options)
 
             if menuSelection == 1:
-                print("Browse")
+                self.searchItemByTitle(columnNames)
             elif menuSelection == 2:
-                print("Checkout")
+                self.searchItemByAuthor(columnNames)
             elif menuSelection == 3:
-                print("Return")
-            elif menuSelection == 4:
                 userExit = True
             else:
                 print("Invalid option selected")
+
+
+    def searchItemByAuthor(self, columnNames):
+        author = input("Enter author's name: ")
+
+        rows = self.manager.getCatalogueByAuthor(author)
+        self.printCatalogue(rows, columnNames)
+
+        input("Press any key to exit: ")
+
+
+
+
+
+    def searchItemByTitle(self, columnNames):
+        title = input("Enter item's title: ")
+
+        rows = self.manager.getCatalogueByTitle(title)
+        self.printCatalogue(rows, columnNames)
+
+        input("Press any key to exit: ")
+
 
 
 
@@ -179,14 +202,15 @@ class TextUI:
 
 
 
-    def addPersonnel(self):
+    def addVolunteer(self):
 
-        print("\n\n\n\n\n-Become a Volunteer-")
+        print("\n\n\n\n\n-Apply to become a Volunteer-")
 
-        print("To become a volunteer please fill in the following prompts: ")
-
-
+        print("To become a volunteer please fill in the following submission form: ")
         print("Press 0 to exit volunteer screen at anytime")
+
+        name = None
+        emailAddress = None
 
         isInput0 = False
         while not isInput0:
@@ -213,7 +237,7 @@ class TextUI:
             print("You've been added to our personnel list")
             volunteerInformation = (name, emailAddress)
 
-            self.manager.addPersonnel(volunteerInformation)
+            self.manager.addVolunteer(volunteerInformation)
 
 
         else:
@@ -226,37 +250,26 @@ class TextUI:
 
 
         rows = self.manager.getPersonnelContactInfo()
-
         columnNames = self.manager.getColumnNamesFromTable("Personnel")
 
-        userExit = False
+        print("-Personnel Information-")
 
-        while not userExit:
-            print("-Personnel Information-")
+        # print columns
+        i = 0
+        while i < len(columnNames) - 1:
+            print("{0:20}".format(columnNames[i + 1]), end='')
+            i = i + 1
+        print('')
 
-            # print columns
-            i = 0
+        i = 0
+        for row in rows:
             while i < len(columnNames) - 1:
-                print("{0:20}".format(columnNames[i + 1]), end='')
+                columnAttribute = str(row[i])
+                shortenedString = columnAttribute[:19]
+                print("{0:20}".format(shortenedString), end='')
                 i = i + 1
             print('')
-
             i = 0
-            for row in rows:
-                while i < len(columnNames) - 1:
-                    columnAttribute = str(row[i])
-                    shortenedString = columnAttribute[:19]
-                    print("{0:20}".format(shortenedString), end='')
-                    i = i + 1
-                print('')
-                i = 0
-            print('\n')
+        print('\n')
 
-            print("1: Exit Personnel Information")
-
-            menuSelection = int(input("Enter a selection: "))
-
-            if menuSelection == 1:
-                userExit = True
-            else:
-                print("Invalid option selected")
+        input("Press any key to exit: ")
