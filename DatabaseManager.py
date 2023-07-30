@@ -29,6 +29,33 @@ class DatabaseManager:
         return rows
 
 
+    def getCatalogueByAuthor(self, author):
+
+        searchByAuthor = '''SELECT * FROM Item WHERE author = ? COLLATE NOCASE'''
+
+        cursor = self.connection.cursor()
+
+        print(author)
+
+        cursor.execute(searchByAuthor, (author,))
+
+        return cursor.fetchall()
+
+
+
+    def getCatalogueByTitle(self, title):
+
+        searchByTitle = '''SELECT * FROM Item WHERE name = ? COLLATE NOCASE'''
+
+        cursor = self.connection.cursor()
+
+        print(title)
+
+        cursor.execute(searchByTitle, (title,))
+
+        return cursor.fetchall()
+
+
 
     def getNumberOfRowsFromTable(self, table):
         sqlNumberColumns = '''SELECT COUNT(*) FROM pragma_table_info(?)'''
@@ -67,7 +94,6 @@ class DatabaseManager:
             return None
 
 
-    # test commit to branch
 
     def donateAnItem(self, insertInformation):
 

@@ -7,11 +7,25 @@ class TextMenu:
         isInputValid = False
 
         while not isInputValid:
-            menuSelection = int(input("Enter a selection: "))
+            menuSelection = input("Enter a selection: ")
 
-            if (menuSelection <= len(options) and menuSelection >= list(options.keys())[0]):
-                print(menuSelection)
-                return menuSelection
+            try:
+                intMenu = TextMenu.selectionInRange(menuSelection, options)
+                return intMenu
 
-            else:
+
+            except ValueError:
                 print("Please enter a valid selection")
+
+
+
+    @staticmethod
+    def selectionInRange(menuSelection, options):
+        menuSelection = int(menuSelection)
+
+        if (menuSelection <= len(options) and menuSelection >= list(options.keys())[0]):
+            return menuSelection
+
+        else:
+            raise ValueError
+
