@@ -17,6 +17,13 @@ class DatabaseManager:
 
         self.connection = connection
 
+
+
+    def close_connection(self):
+        self.connection.close()
+
+
+
     def getAllCatalogue(self):
 
         searchAll = '''SELECT * FROM Item'''
@@ -131,8 +138,62 @@ class DatabaseManager:
         return cursor.lastrowid
 
 
+    # Insert new row into Borrow table with specified userID and itemID
+    def borrowItem(self, userID, itemID):
+        sqlBorrowInsert = '''INSERT INTO Borrows VALUES (?, ?)'''
+
+        insertInformation = (userID, itemID)
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowInsert, insertInformation)
+
+        self.connection.commit()
+
+        return cursor.lastrowid
 
 
+
+    # Returns False if itemID found in Borrows table or upcomingAttribute of tuple with matching itemID in Item table
+    # is set to 1; returns True otherwise
+    def checkItemAvailable(self, itemID):
+        #Check itemID not found in Borrows table
+        sqlBorrowQuery = '''SELECT itemID FROM Borrows WHERE itemID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowQuery, (itemID, ))
+
+        borrowRows = cursor.fetchall()
+
+        #Check itemID upcomingAddition attribute set to True
+        sqlBorrowQuery = '''SELECT upcomingAddition FROM Item WHERE itemID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowQuery, (itemID, ))
+
+        itemRows = cursor.fetchall()
+
+        if not borrowRows and itemRows:
+            return True
+        else:
+            return False
+
+    # Returns True if itemID found in Item table; False if not
+    def checkItemExists(self, itemID):
+        sqlItemQuery = '''SELECT itemID FROM Item WHERE itemID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlItemQuery, (itemID, ))
+
+        itemRows = cursor.fetchall()
+
+        if itemRows:
+            return True
+        else:
+            return False
 
 
     def addVolunteer(self, volunteerInformation):
@@ -149,6 +210,17 @@ class DatabaseManager:
         return cursor.lastrowid
 
 
+
+    def getCheckedOutItems(self, userID):
+        sqlBorrowQuery = '''SELECT Item.itemID, Item.name FROM Borrows NATURAL JOIN Item WHERE userID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowQuery, (userID, ))
+
+        rows = cursor.fetchall()
+
+        return rows
 
 
     def getPersonnelContactInfo(self):

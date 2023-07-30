@@ -22,7 +22,8 @@ def main():
     ui = TextUI(databaseManager)
     ui.start()
 
-    print("Exiting Application")
+    print("Exiting Application...")
+    databaseManager.close_connection()
 
 
 if __name__ == "__main__":
