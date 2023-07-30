@@ -38,7 +38,7 @@ class TextUI:
             if menuSelection == 1:
                 self.searchCatalogue()
             elif menuSelection == 2:
-                print("Checkout")
+                self.checkoutBook()
             elif menuSelection == 3:
                 print("Return")
             elif menuSelection == 4:
@@ -135,6 +135,8 @@ class TextUI:
         input("Press any key to exit: ")
 
 
+    def checkoutBook(self):
+        print("checkout")
 
 
     def donateAnItem(self):
