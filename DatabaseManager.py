@@ -95,6 +95,28 @@ class DatabaseManager:
 
 
 
+    def getUserIDs(self):
+        sqlUserId = '''SELECT * from User'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlUserId)
+        rows = cursor.fetchall()
+
+        return rows
+
+
+    def getNameFromUserID(self, userID):
+        sqlUserName = '''SELECT name from User where userID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlUserName, (userID,))
+        rows = cursor.fetchall()[0]
+
+        return rows[0]
+
+
     def donateAnItem(self, insertInformation):
 
         sqlDonateItem = '''INSERT INTO Item(itemID, name, author, type, releaseDate, available, upcomingAddition)

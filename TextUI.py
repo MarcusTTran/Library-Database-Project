@@ -4,6 +4,9 @@ class TextUI:
     connection = None
     manager = None
 
+    userid = None
+    username = None
+
     def __init__(self, manager):
         self.manager = manager
 
@@ -12,11 +15,53 @@ class TextUI:
 
 
 
-    def start(self):
-        userExit = False
 
+
+    def start(self):
+
+        rows = self.manager.getUserIDs()
+
+        while True:
+            print("Try entering some of these ids: ")
+            for row in rows:
+                print(row[0], end = " ")
+            print("\n")
+
+
+            validUserID = False
+            print("Enter user id for login or press 9 to exit: ")
+            userID = input("Enter user id: ")
+
+            if (userID == '9'):
+                break
+
+            for row in rows:
+                if (userID == str(row[0])):
+                    self.userid = int(row[0])
+                    self.username = self.manager.getNameFromUserID(self.userid)
+                    validUserID = True
+
+            if (validUserID):
+                print("")
+                self.mainMenu()
+            else:
+                print("User ID not found\n")
+
+
+
+
+
+
+
+    def mainMenu(self):
+
+
+        userExit = False
         while not userExit:
             print("X Public Library Online: Main Menu")
+
+            print("Currently logged in as: ")
+            print("\t User {}: {}\n".format(self.userid, self.username))
 
             options = {
                 1: "Search Library Catalogue",
@@ -52,11 +97,10 @@ class TextUI:
             elif menuSelection == 8:
                 self.listPersonnel()
             elif menuSelection == 9:
-                print("Exiting Application...")
+                print("Logging out...")
                 userExit = True
             else:
                 print("Invalid option selected")
-
 
 
     def printCatalogue(self, rows, columnNames):
