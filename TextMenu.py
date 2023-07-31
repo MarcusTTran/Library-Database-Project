@@ -12,8 +12,6 @@ class TextMenu:
             try:
                 intMenu = TextMenu.selectionInRange(menuSelection, options)
                 return intMenu
-
-
             except ValueError:
                 print("Please enter a valid selection")
 
