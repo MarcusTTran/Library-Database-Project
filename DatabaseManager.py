@@ -19,8 +19,8 @@ class DatabaseManager:
 
     def listTable(self, tableName):
         cursor = self.connection.cursor()
-        sqlListTableContents = '''SELECT * FROM ?'''
-        cursor.execute(sqlListTableContents, tableName)
+        sqlListTableContents = f'''SELECT * FROM {tableName}'''
+        cursor.execute(sqlListTableContents)
 
         allRows = cursor.fetchall()
         return allRows
@@ -173,18 +173,30 @@ class DatabaseManager:
 
     def searchForEvent(self, searchKey, searchType):
         cursor = self.connection.cursor()
-        # sqlSearchAllEvents = '''SELECT eventID, eventName, datetime(eventDateTime) FROM Event'''
-        sqlSearchEventNameWithSubstring = '''SELECT eventID, eventName, datetime(eventDateTime) FROM event WHERE eventName LIKE :search'''
-        sqlSearchEventTypeWithSubstring = '''SELECT eventID, eventName, datetime(eventDateTime) FROM event WHERE eventType LIKE :search'''
+        sqlSearchEventNameWithSubstring = '''SELECT eventID, eventName, eventType, roomID, datetime(eventDateTime) FROM event WHERE eventName LIKE :search'''
+        sqlSearchEventTypeWithSubstring = '''SELECT eventID, eventName, eventType, roomID, datetime(eventDateTime) FROM event WHERE eventType LIKE :search'''
 
-        query = sqlSearchEventTypeWithSubstring if searchType.lower == "type" else sqlSearchEventNameWithSubstring
+        query = sqlSearchEventTypeWithSubstring if searchType.lower() == "type" else sqlSearchEventNameWithSubstring
 
-        # if searchType == "ALL":
-        #     cursor.execute(sqlSearchAllEvents)
-        # else:
         cursor.execute(query, {"search": "%" + searchKey + "%"})
 
         eventsLst = cursor.fetchall()
         return eventsLst
+
+    def registerUserForEvent(self, userID, eventTuple):
+        insertAttendsTuple = '''INSERT INTO Attends(userID, eventID) 
+            VALUES (?, ?)'''
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(insertAttendsTuple, (str(userID), str(eventTuple[0])))
+            self.connection.commit()
+            return True
+        except sqlite3.IntegrityError as integrityError:
+            print("A database error occured: ", integrityError)
+            print("Please try registering for a different event or try again later.\n\n")
+            return False
+        except Exception as e:
+            print("An unexpected error occured while registering for the event!\n")
+            return False
 
 

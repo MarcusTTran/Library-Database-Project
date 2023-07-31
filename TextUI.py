@@ -1,3 +1,5 @@
+import sqlite3
+
 from TextMenu import *
 
 class TextUI:
@@ -89,9 +91,9 @@ class TextUI:
             elif menuSelection == 4:
                 self.donateAnItem()
             elif menuSelection == 5:
-                print("Search")
+                self.searchLibEvents()
             elif menuSelection == 6:
-                print("Register")
+                self.registerForEvent()
             elif menuSelection == 7:
                 self.addVolunteer()
             elif menuSelection == 8:
@@ -322,12 +324,12 @@ class TextUI:
         tableName = "Event"
         userExit = False
         rows = self.manager.listTable(tableName)
-        columnNames = self.manager.getColumnNamesFromTable(tableName)
+        allColumnNames = self.manager.getColumnNamesFromTable(tableName)
 
         while not userExit:
             # print all events
             print("\n\n\n\n\n-Events Catalogue- \n")
-            self.printCatalogue(rows, columnNames)
+            self.printCatalogue(rows, allColumnNames)
 
             options = {
                 1: "Search event by name",
@@ -341,10 +343,12 @@ class TextUI:
             eventMenuSelection = TextMenu.getMenuUserInput(options)
             if eventMenuSelection == 1:
                 eventType = "name"
-                self.searchEventHandler(eventType, columnNames)
+                rows = self.searchEventHandler(eventType, allColumnNames)
+                input("Press any key to exit: ")
             elif eventMenuSelection == 2:
                 eventType = "type"
-                self.searchEventHandler(eventType, columnNames)
+                rows = self.searchEventHandler(eventType, allColumnNames)
+                input("Press any key to exit: ")
             elif eventMenuSelection == 3:
                 userExit = True
             else:
@@ -353,10 +357,88 @@ class TextUI:
 
     def searchEventHandler(self, eventType, columnNames):
         if eventType.lower() == "type":
-            eventSearchKey = input("Please enter an event name:")
-        else:
             eventSearchKey = input("Please enter an event type:")
+        else:
+            eventSearchKey = input("Please enter an event name:")
 
         rows = self.manager.searchForEvent(eventSearchKey, eventType)
         self.printCatalogue(rows, columnNames)
-        input("Press any key to exit: ")
+        return rows
+
+    def registerForEvent(self):
+        tableName = "Event"
+        userExit = False
+        rows = self.manager.listTable(tableName)
+        allColumnNames = self.manager.getColumnNamesFromTable(tableName)
+
+        while not userExit:
+            # print all events
+            print("\n\n\n\n\n-Events Catalogue- \n")
+            self.printCatalogue(rows, allColumnNames)
+
+            options = {
+                1: "Register for event by name",
+                2: "Register for event by type",
+                3: "Exit"
+            }
+            for i in options:
+                print("{}. {}".format(i, options[i]))
+            eventMenuSelection = TextMenu.getMenuUserInput(options)
+
+            searchType = "type" if eventMenuSelection == 2 else "name"
+            if eventMenuSelection == 1 or eventMenuSelection == 2:
+                self.registerEventHandler(searchType, allColumnNames)
+
+            elif eventMenuSelection == 3:
+                userExit = True
+            else:
+                print("Invalid option selected")
+
+
+    def registerEventHandler(self, eventType, columnNames):
+        searchedEvents = self.searchEventHandler(eventType, columnNames)
+        numberOfSearchedEvents = len(searchedEvents)
+        eventOptions = {index + 1: value for index, value in enumerate(searchedEvents)}
+        validInput = False
+
+
+        while not validInput:
+            for i in eventOptions:
+                print("{}. {}".format(i, eventOptions[i]))
+            userEventSelection = input(f'''\nPlease select the number of the event you wish to register for.
+                                               Press {str(numberOfSearchedEvents + 1)} to exit.\n''')
+
+            if int(userEventSelection) == int(numberOfSearchedEvents) + 1 and userEventSelection.isnumeric():
+                return
+            elif 1 <= int(userEventSelection) <= int(numberOfSearchedEvents) + 1 and userEventSelection.isnumeric():
+
+                registerComplete = self.signUpForEvent(eventOptions[int(userEventSelection)])
+                validInput = True if registerComplete else False
+
+            else:
+                print(f'''Invalid option, please enter a number from 1 to {str(numberOfSearchedEvents + 1)}\n''')
+
+
+
+    def signUpForEvent(self, selectedEvent):
+        correctInput = False
+        while not correctInput:
+            print(selectedEvent)
+            registerOrNot = input("\nWould you like to register for the event listed above?\n"
+                                  "Enter 'y' or 'n': ")
+            print('')
+
+            if registerOrNot.lower() == 'y':
+
+                 registrationStatus = self.manager.registerUserForEvent(self.userid, selectedEvent)
+                 if registrationStatus:
+                     print("You have successfully registered for this event:")
+                     print(selectedEvent)
+                     print()
+                 return registrationStatus
+
+            elif registerOrNot.lower() == 'n':
+                return False
+            else:
+                print("Invalid option selected")
+
