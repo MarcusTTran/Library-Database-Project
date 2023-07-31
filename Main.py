@@ -10,11 +10,8 @@ from sqlite3 import Error
 
 
 def main():
-    print("Application Started")
 
-    print("Attempting connection to database...")
     db_file = "library.db"
-
 
 
     databaseManager = DatabaseManager()
@@ -22,7 +19,7 @@ def main():
     ui = TextUI(databaseManager)
     ui.start()
 
-    print("Exiting Application")
+    databaseManager.close_connection()
 
 
 if __name__ == "__main__":

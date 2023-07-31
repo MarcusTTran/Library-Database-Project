@@ -1,6 +1,5 @@
-import sqlite3
-
 from TextMenu import *
+import re
 
 class TextUI:
     connection = None
@@ -13,41 +12,33 @@ class TextUI:
         self.manager = manager
 
 
-
-
-
-
-
-
+    # Login page to enter userID
     def start(self):
 
-        rows = self.manager.getUserIDs()
 
-        while True:
-            print("Try entering some of these ids: ")
+        # repeat ask user for id unless enters 0 to exit
+        userExit = False
+        while not userExit:
+            print("TIP: Try entering some of these userIDs: ")
+
+            rows = self.manager.getUserIDs()
             for row in rows:
-                print(row[0], end = " ")
+                print(row[0], end = "\t")
             print("\n")
 
 
-            validUserID = False
-            print("Enter user id for login or press 9 to exit: ")
-            userID = input("Enter user id: ")
+            print("Enter user ID for login or press 0 to exit application: ")
 
-            if (userID == '9'):
-                break
+            userInput = input("Enter user ID: ")
 
-            for row in rows:
-                if (userID == str(row[0])):
-                    self.userid = int(row[0])
-                    self.username = self.manager.getNameFromUserID(self.userid)
-                    validUserID = True
-
-            if (validUserID):
-                print("")
+            if (self.manager.checkUserIDExists(userInput)):
+                self.userid = userInput
+                self.username = self.manager.getNameFromUserID(self.userid)
                 self.mainMenu()
+            elif (userInput == '0'):
+                userExit = True
             else:
-                print("User ID not found\n")
+                print("UserID not found")
 
 
 
@@ -55,57 +46,54 @@ class TextUI:
 
 
 
+
+    # Main Menu after login screen
     def mainMenu(self):
 
+        options = {
+            1: "Borrow: Explore Library Catalogue",
+            2: "Return: View Checked out items",
+            3: "Donate library items",
+            4: "Search library events",
+            5: "Register for library events",
+            6: "Volunteer at X Public Library",
+            7: "Get help from a librarian",
+            0: "Exit application"
+        }
 
         userExit = False
         while not userExit:
             print("X Public Library Online: Main Menu")
 
             print("Currently logged in as: ")
-            print("\t User {}: {}\n".format(self.userid, self.username))
+            print("\t UserID {}: {}\n".format(self.userid, self.username))
 
-            options = {
-                1: "Search Library Catalogue",
-                2: "Checkout library items",
-                3: "Return borrowed items",
-                4: "Donate library items",
-                5: "Search library events",
-                6: "Register for library events",
-                7: "Volunteer at X Public Library",
-                8: "Get help from a librarian",
-                9: "Exit application"
-            }
 
-            for i in options:
-                print("{}. {}".format(i, options[i]))
-
+            TextMenu.printOptions(options)
             menuSelection = TextMenu.getMenuUserInput(options)
 
             if menuSelection == 1:
                 self.searchCatalogue()
             elif menuSelection == 2:
-                print("Checkout")
+                self.returnItems()
             elif menuSelection == 3:
-                print("Return")
-            elif menuSelection == 4:
                 self.donateAnItem()
-            elif menuSelection == 5:
+            elif menuSelection == 4:
                 self.searchLibEvents()
-            elif menuSelection == 6:
+            elif menuSelection == 5:
                 self.registerForEvent()
-            elif menuSelection == 7:
+            elif menuSelection == 6:
                 self.addVolunteer()
-            elif menuSelection == 8:
+            elif menuSelection == 7:
                 self.listPersonnel()
-            elif menuSelection == 9:
+            elif menuSelection == 0:
                 print("Logging out...")
                 userExit = True
             else:
                 print("Invalid option selected")
 
 
-    def printCatalogue(self, rows, columnNames):
+    def printTable(self, rows, columnNames):
         i = 0
         while i < len(columnNames):
             print("{0:20}".format(columnNames[i]), end='')
@@ -124,29 +112,33 @@ class TextUI:
         print('\n')
 
 
-
+    # User can search and checkout library catalogue
     def searchCatalogue(self):
 
-        rows = self.manager.getAllCatalogue()
+        options = {
+            1: "Search item by title",
+            2: "Search item by author",
+            3: "Checkout item",
+            0: "Exit catalogue"
+        }
+
+        rows = self.manager.getCatalogue()
         columnNames = self.manager.getColumnNamesFromTable("Item")
 
+        menuSelection = None
+
         userExit = False
-
         while not userExit:
+
             print("\n\n\n\n\n-Library Catalogue-")
-
-            # print columns and items
             self.printCatalogue(rows, columnNames)
+            TextMenu.printOptions(options)
 
-
-            options = {
-                1: "Search item by title",
-                2: "Search item by author",
-                3: "Exit catalogue"
-            }
-
-            for i in options:
-                print("{}. {}".format(i, options[i]))
+            # # Allows user to retry entry without reprinting entire catalogue
+            # if (menuSelection != 3):
+            #     print("\n\n\n\n\n-Library Catalogue-")
+            #     self.printCatalogue(rows, columnNames)
+            #     TextMenu.printOptions(options)
 
             menuSelection = TextMenu.getMenuUserInput(options)
 
@@ -155,30 +147,224 @@ class TextUI:
             elif menuSelection == 2:
                 self.searchItemByAuthor(columnNames)
             elif menuSelection == 3:
+                self.borrowItem()
+            elif menuSelection == 0:
+                userExit = True
+            else:
+                print("Invalid option selected")
+
+        print("")
+
+    # Print all Item rows with columnNames
+    def printCatalogue(self, rows, columnNames):
+
+        # Print column Names
+        i = 0
+        while i < len(columnNames) - 1:
+            print("{0:20}".format(columnNames[i].upper()), end='')
+            i = i + 1
+
+        # Add extra coming soon column
+        print("{0:20}".format("coming soon".upper()), end='')
+
+        # Add extra availability column
+        print("{0:20}".format("availability".upper()), end='')
+        print('')
+
+
+        columnLength = len(columnNames)
+
+        # Print all rows in Item table
+        i = 0
+        for row in rows:
+            while i < len(columnNames):
+                self.printCatalogueRow(i, row, columnLength)
+                i = i + 1
+            if (self.manager.checkItemAvailable(row[0])):
+                print("Available")
+            else:
+                print("Unavailable")
+
+            i = 0
+
+        print('\n')
+
+    # Print each row in the catalogue with upcomingAttribute replaced with COMING SOON
+    def printCatalogueRow(self, i, row, columnLength):
+        columnAttribute = str(row[i])
+        shortenedString = columnAttribute[:19]
+        if (i == columnLength - 1):
+            if (columnAttribute == '1'):
+                shortenedString = "COMING SOON"
+            else:
+                shortenedString = ""
+        print("{0:20}".format(shortenedString), end='')
+
+
+    # Search item by author
+    def searchItemByAuthor(self, columnNames):
+        author = input("Enter author's name: ")
+
+        options = {
+            1: "Checkout item",
+            0: "Exit search screen"
+        }
+
+        userExit = False
+
+        while not userExit:
+            rows = self.manager.getCatalogueByAuthor(author)
+            self.printCatalogue(rows, columnNames)
+
+            TextMenu.printOptions(options)
+            menuSelection = TextMenu.getMenuUserInput(options)
+
+            if menuSelection == 1:
+                self.borrowItem()
+            elif menuSelection == 0:
                 userExit = True
             else:
                 print("Invalid option selected")
 
 
-    def searchItemByAuthor(self, columnNames):
-        author = input("Enter author's name: ")
-
-        rows = self.manager.getCatalogueByAuthor(author)
-        self.printCatalogue(rows, columnNames)
-
-        input("Press any key to exit: ")
-
-
-
-
-
     def searchItemByTitle(self, columnNames):
         title = input("Enter item's title: ")
 
-        rows = self.manager.getCatalogueByTitle(title)
-        self.printCatalogue(rows, columnNames)
+        options = {
+            1: "Checkout item",
+            0: "Exit search screen"
+        }
 
-        input("Press any key to exit: ")
+        userExit = False
+
+        while not userExit:
+            rows = self.manager.getCatalogueByTitle(title)
+            self.printCatalogue(rows, columnNames)
+
+            TextMenu.printOptions(options)
+            menuSelection = TextMenu.getMenuUserInput(options)
+
+            if menuSelection == 1:
+                self.borrowItem()
+            elif menuSelection == 0:
+                userExit = True
+            else:
+                print("Invalid option selected")
+
+    # Asks user for itemID to borrow
+    def borrowItem(self):
+
+        itemID = input("Enter itemID to borrow: ")
+
+        itemExists = False
+        isItemAvailable = False
+        if (self.manager.checkItemExists(itemID)):
+            itemExists = True
+
+        if (itemExists and self.manager.checkItemAvailable(itemID)):
+            isItemAvailable = True
+            error = self.manager.borrowItem(self.userid, itemID)
+            if error:
+                print(error)
+            else:
+                print("Item borrowed successfully")
+
+        if (not itemExists):
+            print("Item with itemID not found")
+
+        if (itemExists and not isItemAvailable):
+            print("Item is currently not available")
+
+        input("Press any key to continue: ")
+        print("")
+
+
+    def returnItems(self):
+
+
+
+
+
+        options = {
+            1: "Return item",
+            0: "Exit screen"
+        }
+
+        userExit = False
+
+        while not userExit:
+            fines = self.manager.getFines(self.userid)
+
+            print("\nFines due: ${:.2f}".format(fines))
+            print("Please payoff any fines at your local branch")
+            print("Late items face a fine of $1\n")
+
+
+
+            checkedOutRows = self.manager.getCheckedOutItems(self.userid)
+
+            self.printCheckedoutItems(checkedOutRows, ("itemID", "Title", "Type", "Return by Date"))
+
+            TextMenu.printOptions(options)
+            menuSelection = TextMenu.getMenuUserInput(options)
+
+            if menuSelection == 1:
+                self.returnItem()
+            elif menuSelection == 0:
+                userExit = True
+            else:
+                print("Invalid option selected")
+
+
+
+    def printCheckedoutItems(self, checkedOutRows, columns):
+
+        columnLength = len(columns)
+
+        # Print column Names
+        i = 0
+        while i < columnLength:
+            print("{0:20}".format(columns[i].upper()), end='')
+            i = i + 1
+        print("")
+
+        # Print all rows in Item table
+        i = 0
+        for row in checkedOutRows:
+            while i < columnLength:
+                columnAttribute = str(row[i])
+                shortenedString = columnAttribute[:19]
+                print("{0:20}".format(shortenedString), end='')
+                i = i + 1
+            i = 0
+            print("")
+
+        print('\n')
+
+
+    def returnItem(self):
+
+        userExit = False
+
+        while not userExit:
+            menuSelection = input("Enter the itemID of the Item you wish to return or press 0 to exit: ")
+
+
+            try:
+                menuSelection = int(menuSelection)
+                if menuSelection == 0:
+                    userExit = True
+                else:
+                    if (self.manager.checkItemExists(menuSelection)):
+                        self.manager.returnItem(self.userid, menuSelection)
+                        print("Item returned successfully")
+
+                    else:
+                        print("Item not found")
+
+            except ValueError:
+                print("Invalid option selected")
+
 
 
 
@@ -189,7 +375,6 @@ class TextUI:
 
         print("Press 0 to exit from Donation Menu at anytime: ")
 
-        title = None
         author = None
         type = None
         releaseDate = None
@@ -236,12 +421,13 @@ class TextUI:
                 print("Please enter a release date")
 
         if (not isInput0):
-            print("Item successfully donated")
-
-            insertInformation = (title, author, type, releaseDate)
-
+            insertInformation = [title, author, type, releaseDate]
             self.manager.donateAnItem(insertInformation)
 
+            print("\nItem successfully donated")
+            print("Please bring your item to the local library for dropoff")
+
+            input("Press any key to continue: ")
 
         else:
             print("Donation Cancelled\n")
@@ -253,41 +439,32 @@ class TextUI:
         print("\n\n\n\n\n-Apply to become a Volunteer-")
 
         print("To become a volunteer please fill in the following submission form: ")
-        print("Press 0 to exit volunteer screen at anytime")
 
-        name = None
-        emailAddress = None
 
-        isInput0 = False
-        while not isInput0:
-            name = input("Enter your full name: ")
-            if (name == "0"):
-                isInput0 = True
-                break
-            elif (name != ""):
-                break
+        name = self.manager.getNameFromUserID(self.userid)
+
+        print("You are volunteering as: {}".format(name))
+
+        userExit = False
+        while not userExit:
+            userInput = input("Please enter your email address or press 0 to cancel form: ")
+            #userInput = re.compile(userInput)
+
+            if (userInput == "0"):
+                print("Volunteer Form Cancelled\n")
+                userExit = True
+            elif (bool(re.search("\.com", userInput)) and bool(re.search('@', userInput))):
+                print("Thank you for volunteer. You've been added to our personnel list.")
+                volunteerInformation = (name, userInput)
+                self.manager.addVolunteer(volunteerInformation)
+                userExit = True
+                print("We will contact you shortly")
+                input("Press any key to continue: ")
+
             else:
-                print("Please enter your name")
-
-        while not isInput0:
-            emailAddress = input("Please enter your email address: ")
-            if (emailAddress == "0"):
-                isInput0 = True
-                break
-            elif (emailAddress != ""):
-                break
-            else:
-                print("Please an email address")
-
-        if (not isInput0):
-            print("You've been added to our personnel list")
-            volunteerInformation = (name, emailAddress)
-
-            self.manager.addVolunteer(volunteerInformation)
+                print("Email address not of valid form")
 
 
-        else:
-            print("Volunteer Form Cancelled\n")
 
 
     def listPersonnel(self):

@@ -12,8 +12,6 @@ class TextMenu:
             try:
                 intMenu = TextMenu.selectionInRange(menuSelection, options)
                 return intMenu
-
-
             except ValueError:
                 print("Please enter a valid selection")
 
@@ -23,9 +21,14 @@ class TextMenu:
     def selectionInRange(menuSelection, options):
         menuSelection = int(menuSelection)
 
-        if (menuSelection <= len(options) and menuSelection >= list(options.keys())[0]):
+        if (menuSelection < len(options) and menuSelection >= 0):
             return menuSelection
 
         else:
             raise ValueError
 
+
+    @staticmethod
+    def printOptions(options):
+        for i in options:
+            print("{}. {}".format(i, options[i]))
