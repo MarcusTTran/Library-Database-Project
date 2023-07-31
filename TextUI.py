@@ -12,11 +12,6 @@ class TextUI:
         self.manager = manager
 
 
-
-
-
-
-
     # Login page to enter userID
     def start(self):
 
@@ -270,10 +265,9 @@ class TextUI:
 
     def returnItems(self):
 
-        fines = self.manager.getFines(self.userid)
 
-        print("\nFines due: ${:.2f}".format(fines))
-        print("Please payoff any fines at your local branch\n")
+
+
 
         options = {
             1: "Return item",
@@ -283,6 +277,14 @@ class TextUI:
         userExit = False
 
         while not userExit:
+            fines = self.manager.getFines(self.userid)
+
+            print("\nFines due: ${:.2f}".format(fines))
+            print("Please payoff any fines at your local branch")
+            print("Late items face a fine of $1\n")
+
+
+
             checkedOutRows = self.manager.getCheckedOutItems(self.userid)
 
             self.printCheckedoutItems(checkedOutRows, ("itemID", "Title", "Type", "Return by Date"))
