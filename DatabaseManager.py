@@ -16,6 +16,13 @@ class DatabaseManager:
 
         self.connection = connection
 
+    def listTable(self, tableName):
+        cursor = self.connection.cursor()
+        sqlListTableContents = f'''SELECT * FROM {tableName}'''
+        cursor.execute(sqlListTableContents)
+
+        allRows = cursor.fetchall()
+        return allRows
 
 
     def close_connection(self):
@@ -302,17 +309,32 @@ class DatabaseManager:
         return rows
 
 
-    def searchForEvent(self, searchKey):
-        sqlSearchAllEvents = '''SELECT eventID, eventName, datetime(event) FROM Event'''
-        sqlSearchEventsWithSubstring = '''SELECT eventID, eventName, datetime(event) FROM event WHERE eventName LIKE :search'''
+    def searchForEvent(self, searchKey, searchType):
         cursor = self.connection.cursor()
+        sqlSearchEventNameWithSubstring = '''SELECT eventID, eventName, eventType, roomID, datetime(eventDateTime) FROM event WHERE eventName LIKE :search'''
+        sqlSearchEventTypeWithSubstring = '''SELECT eventID, eventName, eventType, roomID, datetime(eventDateTime) FROM event WHERE eventType LIKE :search'''
 
-        if (searchKey == ""):
-            cursor.execute(sqlSearchAllEvents)
-        else:
-            cursor.execute(sqlSearchEventsWithSubstring, {"search": "%" + searchKey + "%"})
+        query = sqlSearchEventTypeWithSubstring if searchType.lower() == "type" else sqlSearchEventNameWithSubstring
+
+        cursor.execute(query, {"search": "%" + searchKey + "%"})
 
         eventsLst = cursor.fetchall()
         return eventsLst
+
+    def registerUserForEvent(self, userID, eventTuple):
+        insertAttendsTuple = '''INSERT INTO Attends(userID, eventID) 
+            VALUES (?, ?)'''
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(insertAttendsTuple, (str(userID), str(eventTuple[0])))
+            self.connection.commit()
+            return True
+        except sqlite3.IntegrityError as integrityError:
+            print("A database error occured: ", integrityError)
+            print("Please try registering for a different event or try again later.\n\n")
+            return False
+        except Exception as e:
+            print("An unexpected error occured while registering for the event!\n")
+            return False
 
 
