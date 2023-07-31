@@ -157,11 +157,17 @@ class DatabaseManager:
 
         cursor = self.connection.cursor()
 
-        cursor.execute(sqlBorrowInsert, insertInformation)
+        try:
+            cursor.execute(sqlBorrowInsert, insertInformation)
+            self.connection.commit()
+            return None
 
-        self.connection.commit()
+        except sqlite3.IntegrityError as e:
+            return e
 
-        return cursor.lastrowid
+
+
+
 
 
 
@@ -216,7 +222,8 @@ class DatabaseManager:
         if (itemRows[0] == 1):
             upcomingAddition = True
 
-        if not borrowRows and not upcomingAddition:
+        #if not borrowRows and not upcomingAddition:
+        if not borrowRows:
             return True
         else:
             return False

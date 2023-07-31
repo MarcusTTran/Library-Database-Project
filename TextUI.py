@@ -36,13 +36,12 @@ class TextUI:
 
             userInput = input("Enter user ID: ")
 
-            if (userInput == '0'):
-                userExit = True
-
             if (self.manager.checkUserIDExists(userInput)):
                 self.userid = userInput
                 self.username = self.manager.getNameFromUserID(self.userid)
                 self.mainMenu()
+            elif (userInput == '0'):
+                userExit = True
             else:
                 print("UserID not found")
 
@@ -253,8 +252,11 @@ class TextUI:
 
         if (itemExists and self.manager.checkItemAvailable(itemID)):
             isItemAvailable = True
-            self.manager.borrowItem(self.userid, itemID)
-            print("Item borrowed successfully")
+            error = self.manager.borrowItem(self.userid, itemID)
+            if error:
+                print(error)
+            else:
+                print("Item borrowed successfully")
 
         if (not itemExists):
             print("Item with itemID not found")
