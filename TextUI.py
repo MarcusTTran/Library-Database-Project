@@ -506,16 +506,14 @@ class TextUI:
         while not userExit:
             # print all events
             print("\n\n\n\n\n-Events Catalogue- \n")
-            self.printCatalogue(rows, allColumnNames)
+            self.printTable(rows, allColumnNames)
 
             options = {
                 1: "Search event by name",
                 2: "Search event by type",
-                3: "Exit catalogue"
+                0: "Exit catalogue"
             }
-
-            for i in options:
-                print("{}. {}".format(i, options[i]))
+            TextMenu.printOptions(options)
 
             eventMenuSelection = TextMenu.getMenuUserInput(options)
             if eventMenuSelection == 1:
@@ -526,7 +524,7 @@ class TextUI:
                 eventType = "type"
                 rows = self.searchEventHandler(eventType, allColumnNames)
                 input("Press any key to exit: ")
-            elif eventMenuSelection == 3:
+            elif eventMenuSelection == 0:
                 userExit = True
             else:
                 print("Invalid option selected")
@@ -539,7 +537,7 @@ class TextUI:
             eventSearchKey = input("Please enter an event name:")
 
         rows = self.manager.searchForEvent(eventSearchKey, eventType)
-        self.printCatalogue(rows, columnNames)
+        self.printTable(rows, columnNames)
         return rows
 
     def registerForEvent(self):
@@ -551,22 +549,22 @@ class TextUI:
         while not userExit:
             # print all events
             print("\n\n\n\n\n-Events Catalogue- \n")
-            self.printCatalogue(rows, allColumnNames)
+            self.printTable(rows, allColumnNames)
 
             options = {
                 1: "Register for event by name",
                 2: "Register for event by type",
-                3: "Exit"
+                0: "Exit"
             }
-            for i in options:
-                print("{}. {}".format(i, options[i]))
+            TextMenu.printOptions(options)
+
             eventMenuSelection = TextMenu.getMenuUserInput(options)
 
             searchType = "type" if eventMenuSelection == 2 else "name"
             if eventMenuSelection == 1 or eventMenuSelection == 2:
                 self.registerEventHandler(searchType, allColumnNames)
 
-            elif eventMenuSelection == 3:
+            elif eventMenuSelection == 0:
                 userExit = True
             else:
                 print("Invalid option selected")
@@ -580,20 +578,19 @@ class TextUI:
 
 
         while not validInput:
-            for i in eventOptions:
-                print("{}. {}".format(i, eventOptions[i]))
+            TextMenu.printOptions(eventOptions)
             userEventSelection = input(f'''\nPlease select the number of the event you wish to register for.
-                                               Press {str(numberOfSearchedEvents + 1)} to exit.\n''')
+                                               Press 0 to exit.\n''')
 
-            if int(userEventSelection) == int(numberOfSearchedEvents) + 1 and userEventSelection.isnumeric():
+            if int(userEventSelection) == 0 and userEventSelection.isnumeric():
                 return
-            elif 1 <= int(userEventSelection) <= int(numberOfSearchedEvents) + 1 and userEventSelection.isnumeric():
+            elif 1 <= int(userEventSelection) <= int(numberOfSearchedEvents) and userEventSelection.isnumeric():
 
                 registerComplete = self.signUpForEvent(eventOptions[int(userEventSelection)])
                 validInput = True if registerComplete else False
 
             else:
-                print(f'''Invalid option, please enter a number from 1 to {str(numberOfSearchedEvents + 1)}\n''')
+                print(f'''Invalid option, please enter a number from 0 to {str(numberOfSearchedEvents)}\n''')
 
 
 
@@ -615,6 +612,7 @@ class TextUI:
                  return registrationStatus
 
             elif registerOrNot.lower() == 'n':
+                print("Registration cancelled.\n")
                 return False
             else:
                 print("Invalid option selected")
