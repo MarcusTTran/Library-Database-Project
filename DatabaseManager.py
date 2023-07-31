@@ -1,8 +1,6 @@
 import sqlite3
 from sqlite3 import Error
 
-from TextMenu import *
-
 
 class DatabaseManager:
     connection = None
@@ -11,13 +9,36 @@ class DatabaseManager:
         connection = None
         try:
             connection = sqlite3.connect(db_file)
+            print("Database connected\n")
         except Error as e:
             print(e)
             print("Database failed to connect")
 
         self.connection = connection
 
-    def getAllCatalogue(self):
+
+
+    def close_connection(self):
+        self.connection.close()
+        print("\nDatabase connection closed")
+
+
+    def checkUserIDExists(self, userID):
+        rows = self.getUserIDs()
+
+        validUserID = False
+        for row in rows:
+            if (userID == str(row[0])):
+                self.userid = int(row[0])
+                validUserID = True
+
+        if (validUserID):
+            return True
+        else:
+            return False
+
+
+    def getCatalogue(self):
 
         searchAll = '''SELECT * FROM Item'''
 
@@ -31,12 +52,11 @@ class DatabaseManager:
 
     def getCatalogueByAuthor(self, author):
 
-        searchByAuthor = '''SELECT * FROM Item WHERE author = ? COLLATE NOCASE'''
+        searchByAuthor = '''SELECT * FROM Item WHERE author LIKE ? COLLATE NOCASE'''
 
         cursor = self.connection.cursor()
 
-        print(author)
-
+        author = author + '%'
         cursor.execute(searchByAuthor, (author,))
 
         return cursor.fetchall()
@@ -45,12 +65,11 @@ class DatabaseManager:
 
     def getCatalogueByTitle(self, title):
 
-        searchByTitle = '''SELECT * FROM Item WHERE name = ? COLLATE NOCASE'''
+        searchByTitle = '''SELECT * FROM Item WHERE title LIKE ? COLLATE NOCASE'''
 
         cursor = self.connection.cursor()
 
-        print(title)
-
+        title = title + '%'
         cursor.execute(searchByTitle, (title,))
 
         return cursor.fetchall()
@@ -69,7 +88,6 @@ class DatabaseManager:
 
     def getColumnNamesFromTable(self, tableName):
 
-        #sqlTables = '''.tables'''
         cursor = self.connection.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         rows = cursor.fetchall()
@@ -119,8 +137,8 @@ class DatabaseManager:
 
     def donateAnItem(self, insertInformation):
 
-        sqlDonateItem = '''INSERT INTO Item(itemID, name, author, type, releaseDate, available, upcomingAddition)
-                        VALUES((SELECT IFNULL(MAX(itemID) + 1, 0) FROM Item),?,?,?,?,0,1)'''
+        sqlDonateItem = '''INSERT INTO Item(itemID, title, author, type, releaseDate, upcomingAddition)
+                        VALUES((SELECT IFNULL(MAX(itemID) + 1, 0) FROM Item),?,?,?,?,1)'''
 
         cursor = self.connection.cursor()
 
@@ -131,8 +149,119 @@ class DatabaseManager:
         return cursor.lastrowid
 
 
+    # Insert new row into Borrow table with specified userID and itemID
+    def borrowItem(self, userID, itemID):
+        sqlBorrowInsert = '''INSERT INTO Borrows(itemID, userID) VALUES (?, ?)'''
+
+        insertInformation = (itemID, userID)
+
+        cursor = self.connection.cursor()
+
+        try:
+            cursor.execute(sqlBorrowInsert, insertInformation)
+            self.connection.commit()
+            return None
+
+        except sqlite3.IntegrityError as e:
+            return e
 
 
+
+
+
+
+
+
+
+    def getFines(self, userID):
+        sqlFinesQuery = '''SELECT finesDue FROM User WHERE userID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlFinesQuery, (userID, ))
+
+        fines = cursor.fetchone()
+
+        return fines[0]
+
+
+    def returnItem(self, userID, itemID):
+        sqlReturnBorrow = '''DELETE FROM Borrows WHERE Borrows.userID = ? and Borrows.itemID = ? '''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlReturnBorrow, (userID, itemID))
+
+        self.connection.commit()
+
+        return cursor.lastrowid
+
+
+    # Returns False if itemID found in Borrows table or upcomingAttribute of tuple with matching itemID in Item table
+    # is set to 1; returns True otherwise
+    def checkItemAvailable(self, itemID):
+        #Check itemID not found in Borrows table
+        sqlBorrowQuery = '''SELECT itemID FROM Borrows WHERE itemID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowQuery, (itemID, ))
+
+        borrowRows = cursor.fetchall()
+
+        #Check itemID upcomingAddition attribute set to True
+        sqlBorrowQuery = '''SELECT upcomingAddition FROM Item WHERE itemID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowQuery, (itemID, ))
+
+        itemRows = cursor.fetchall()[0]
+
+        upcomingAddition = False
+        if (itemRows[0] == 1):
+            upcomingAddition = True
+
+        #if not borrowRows and not upcomingAddition:
+        if not borrowRows:
+            return True
+        else:
+            return False
+
+
+    def checkItemUpcomingAddition(self, itemID):
+        sqlBorrowQuery = '''SELECT upcomingAddition FROM Item WHERE itemID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowQuery, (itemID, ))
+
+        rows = cursor.fetchone()[0]
+
+        upcomingAddition = False
+        if (rows == 1):
+            upcomingAddition = True
+
+        if not upcomingAddition:
+            return True
+        else:
+            return False
+
+
+    # Returns True if itemID found in Item table; False if not
+    def checkItemExists(self, itemID):
+        sqlItemQuery = '''SELECT itemID FROM Item WHERE itemID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlItemQuery, (itemID, ))
+
+        itemRows = cursor.fetchall()
+
+        if itemRows:
+            return True
+        else:
+            return False
 
 
     def addVolunteer(self, volunteerInformation):
@@ -149,6 +278,17 @@ class DatabaseManager:
         return cursor.lastrowid
 
 
+
+    def getCheckedOutItems(self, userID):
+        sqlBorrowQuery = '''SELECT Item.itemID, Item.title, Item.type, Borrows.returnDate FROM Borrows NATURAL JOIN ITEM WHERE userID = ?'''
+
+        cursor = self.connection.cursor()
+
+        cursor.execute(sqlBorrowQuery, (userID, ))
+
+        rows = cursor.fetchall()
+
+        return rows
 
 
     def getPersonnelContactInfo(self):
