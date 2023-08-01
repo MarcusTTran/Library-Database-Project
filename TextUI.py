@@ -42,11 +42,6 @@ class TextUI:
 
 
 
-
-
-
-
-
     # Main Menu after login screen
     def mainMenu(self):
 
@@ -56,8 +51,9 @@ class TextUI:
             3: "Donate library items",
             4: "Search library events",
             5: "Register for library events",
-            6: "Volunteer at X Public Library",
-            7: "Get help from a librarian",
+            6: "Join a Book Club",
+            7: "Volunteer at X Public Library",
+            8: "Get help from a librarian",
             0: "Exit application"
         }
 
@@ -83,8 +79,10 @@ class TextUI:
             elif menuSelection == 5:
                 self.registerForEvent()
             elif menuSelection == 6:
-                self.addVolunteer()
+                self.joinBookClub()
             elif menuSelection == 7:
+                self.addVolunteer()
+            elif menuSelection == 8:
                 self.listPersonnel()
             elif menuSelection == 0:
                 print("Logging out...")
@@ -616,4 +614,7 @@ class TextUI:
                 return False
             else:
                 print("Invalid option selected")
+
+    def joinBookClub(self):
+        pass
 
