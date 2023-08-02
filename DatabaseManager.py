@@ -337,4 +337,20 @@ class DatabaseManager:
             print("An unexpected error occured while registering for the event!\n")
             return False
 
-
+    def getUniqueBookClubs(self):
+        queryBookClubNameAndDay = '''SELECT eventName, DATE(MIN(eventDateTime)) as next_event_date, TIME(MIN(eventDateTime)) as time,
+                CASE strftime('%w', MIN(eventDateTime))
+                    WHEN '0' THEN 'Sunday'
+                    WHEN '1' THEN 'Monday'
+                    WHEN '2' THEN 'Tuesday'
+                    WHEN '3' THEN 'Wednesday'
+                    WHEN '4' THEN 'Thursday'
+                    WHEN '5' THEN 'Friday'
+                    WHEN '6' THEN 'Saturday'
+                        END AS dayOfTheWeek
+                FROM Event
+                WHERE eventType = 'Book Club'
+                GROUP BY eventName;'''
+        cursor = self.connection.cursor()
+        cursor.execute(queryBookClubNameAndDay)
+        return cursor.fetchall()

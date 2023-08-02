@@ -616,5 +616,48 @@ class TextUI:
                 print("Invalid option selected")
 
     def joinBookClub(self):
-        pass
+        bookClubRegColumns = ['eventName', 'next_event_date', 'time', 'dayOfTheWeek']
+        bookClubRegTuples = self.manager.getUniqueBookClubs()
+        numOfBookClubs = len(bookClubRegTuples)
+        bookClubOptions = {index + 1: value for index, value in enumerate(bookClubRegTuples)}
+        validInput = False
+
+        self.printTable(bookClubRegTuples, bookClubRegColumns)
+        userClubSelection = input(f'''\nPlease select the number of the club you wish to join.
+                                                       Press 0 to exit.\n''')
+        while not validInput:
+            if int(userClubSelection) == 0 and userClubSelection.isnumeric():
+                return
+            elif 1 <= int(userClubSelection) <= int(numOfBookClubs) and userClubSelection.isnumeric():
+                self.completeBookClubJoin(bookClubOptions[int(userClubSelection)])
+                validInput = True
+            else:
+                print(f'''Invalid option, please enter a number from 0 to {str(numOfBookClubs)}\n''')
+
+    def completeBookClubJoin(self, selectedBookClub):
+        validInput = False
+        while not validInput:
+            print(selectedBookClub)
+            joinOrNot =  input("\nWould you like to join the book club selected above?\n"
+                                  "Enter 'y' or 'n': ")
+            print('')
+
+            if joinOrNot.lower() == 'y':
+
+                validInput = True
+            elif joinOrNot.lower() == 'n':
+                print("Registration cancelled.\n")
+                validInput = True
+            else:
+                print("Invalid option selected")
+
+
+
+
+
+
+
+
+
+
 
