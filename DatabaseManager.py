@@ -363,18 +363,18 @@ class DatabaseManager:
                     VALUES (?, ?)'''
         meetingsToRegister = self.getAllBookClubMeetings(bookClub)
 
-        try:
-            for meeting in meetingsToRegister:
-                cursor.execute(insertAttendsBC, (str(userID), str(bookClub[bookClubIDindex])))
+        # try:
+        for meeting in meetingsToRegister:
+            cursor.execute(insertAttendsBC, (str(userID), str(meeting[bookClubIDindex])))
 
-            self.connection.commit()
-            return True
+        self.connection.commit()
+        return True
 
-        except sqlite3.IntegrityError:
-            return False
-        except Exception:
-            print("An unexpected error occured while registering for the book club!\n")
-            return False
+        # except sqlite3.IntegrityError:
+        #     return False
+        # except Exception:
+        #     print("An unexpected error occured while registering for the book club!\n")
+        #     return False
 
     def getAllBookClubMeetings(self, bookClub):
         cursor = self.connection.cursor()
