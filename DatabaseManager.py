@@ -322,11 +322,12 @@ class DatabaseManager:
         return eventsLst
 
     def registerUserForEvent(self, userID, eventTuple):
+        eventIDindex = 0
         insertAttendsTuple = '''INSERT INTO Attends(userID, eventID) 
             VALUES (?, ?)'''
         cursor = self.connection.cursor()
         try:
-            cursor.execute(insertAttendsTuple, (str(userID), str(eventTuple[0])))
+            cursor.execute(insertAttendsTuple, (str(userID), str(eventTuple[eventIDindex])))
             self.connection.commit()
             return True
         except sqlite3.IntegrityError as integrityError:
@@ -354,3 +355,32 @@ class DatabaseManager:
         cursor = self.connection.cursor()
         cursor.execute(queryBookClubNameAndDay)
         return cursor.fetchall()
+
+    def registerForBookClubMeetings(self, userID, bookClub):
+        cursor = self.connection.cursor()
+        bookClubIDindex = 0
+        insertAttendsBC = '''INSERT INTO Attends(userID, eventID) 
+                    VALUES (?, ?)'''
+        meetingsToRegister = self.getAllBookClubMeetings(bookClub)
+
+        try:
+            for meeting in meetingsToRegister:
+                cursor.execute(insertAttendsBC, (str(userID), str(bookClub[bookClubIDindex])))
+
+            return True
+        # except sqlite3.IntegrityError:
+        #     return False
+        except Exception:
+            print("An unexpected error occured while registering for the book club!\n")
+            return False
+
+    def getAllBookClubMeetings(self, bookClub):
+        cursor = self.connection.cursor()
+        clubNameIndex = 1
+        allClubMeetingsQuery = '''SELECT * FROM Event 
+        WHERE eventType = 'Book Club' AND eventName = ? '''
+
+        cursor.execute(allClubMeetingsQuery, (bookClub[clubNameIndex],))
+        return cursor.fetchall()
+
+

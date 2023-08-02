@@ -622,7 +622,8 @@ class TextUI:
         bookClubOptions = {index + 1: value for index, value in enumerate(bookClubRegTuples)}
         validInput = False
 
-        self.printTable(bookClubRegTuples, bookClubRegColumns)
+        print('\n')
+        TextMenu.printOptions(bookClubOptions)
         userClubSelection = input(f'''\nPlease select the number of the club you wish to join.
                                                        Press 0 to exit.\n''')
         while not validInput:
@@ -643,7 +644,14 @@ class TextUI:
             print('')
 
             if joinOrNot.lower() == 'y':
-
+                registrationStatus = self.manager.registerForBookClubMeetings(self.userid, selectedBookClub)
+                if registrationStatus:
+                    print("You have successfully joined this club:")
+                    print(selectedBookClub)
+                    print('')
+                else:
+                    print("Sorry, there was an issue in joining this book club.")
+                    print('')
                 validInput = True
             elif joinOrNot.lower() == 'n':
                 print("Registration cancelled.\n")
