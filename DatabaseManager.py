@@ -24,6 +24,14 @@ class DatabaseManager:
         allRows = cursor.fetchall()
         return allRows
 
+    def listTableOrderByDate(self, tableName):
+        cursor = self.connection.cursor()
+        sqlListTableContents = f'''SELECT * FROM {tableName} ORDER BY eventDateTime'''
+        cursor.execute(sqlListTableContents)
+
+        allRows = cursor.fetchall()
+        return allRows
+
 
     def close_connection(self):
         self.connection.close()
@@ -225,9 +233,9 @@ class DatabaseManager:
 
         itemRows = cursor.fetchall()[0]
 
-        upcomingAddition = False
+        #if upcomingAddition, NOT available
         if (itemRows[0] == 1):
-            upcomingAddition = True
+            return False
 
         #if not borrowRows and not upcomingAddition:
         if not borrowRows:
@@ -322,11 +330,12 @@ class DatabaseManager:
         return eventsLst
 
     def registerUserForEvent(self, userID, eventTuple):
+        eventIDindex = 0
         insertAttendsTuple = '''INSERT INTO Attends(userID, eventID) 
             VALUES (?, ?)'''
         cursor = self.connection.cursor()
         try:
-            cursor.execute(insertAttendsTuple, (str(userID), str(eventTuple[0])))
+            cursor.execute(insertAttendsTuple, (str(userID), str(eventTuple[eventIDindex])))
             self.connection.commit()
             return True
         except sqlite3.IntegrityError as integrityError:
@@ -336,5 +345,52 @@ class DatabaseManager:
         except Exception as e:
             print("An unexpected error occured while registering for the event!\n")
             return False
+
+    def getUniqueBookClubs(self):
+        queryBookClubNameAndDay = '''SELECT eventName, DATE(MIN(eventDateTime)) as next_event_date, TIME(MIN(eventDateTime)) as time,
+                CASE strftime('%w', MIN(eventDateTime))
+                    WHEN '0' THEN 'Sunday'
+                    WHEN '1' THEN 'Monday'
+                    WHEN '2' THEN 'Tuesday'
+                    WHEN '3' THEN 'Wednesday'
+                    WHEN '4' THEN 'Thursday'
+                    WHEN '5' THEN 'Friday'
+                    WHEN '6' THEN 'Saturday'
+                        END AS dayOfTheWeek
+                FROM Event
+                WHERE eventType = 'Book Club'
+                GROUP BY eventName;'''
+        cursor = self.connection.cursor()
+        cursor.execute(queryBookClubNameAndDay)
+        return cursor.fetchall()
+
+    def registerForBookClubMeetings(self, userID, bookClub):
+        cursor = self.connection.cursor()
+        bookClubIDindex = 0
+        insertAttendsBC = '''INSERT INTO Attends(userID, eventID) 
+                    VALUES (?, ?)'''
+        meetingsToRegister = self.getAllBookClubMeetings(bookClub)
+
+        try:
+            for meeting in meetingsToRegister:
+                cursor.execute(insertAttendsBC, (str(userID), str(meeting[bookClubIDindex])))
+
+            self.connection.commit()
+            return True
+
+        except sqlite3.IntegrityError:
+            return False
+        except Exception:
+            print("An unexpected error occured while registering for the book club!\n")
+            return False
+
+    def getAllBookClubMeetings(self, bookClub):
+        cursor = self.connection.cursor()
+        clubNameIndex = 0
+        allClubMeetingsQuery = '''SELECT * FROM Event 
+        WHERE eventType = 'Book Club' AND eventName = ?'''
+
+        cursor.execute(allClubMeetingsQuery, (bookClub[clubNameIndex],))
+        return cursor.fetchall()
 
 

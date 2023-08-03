@@ -42,11 +42,6 @@ class TextUI:
 
 
 
-
-
-
-
-
     # Main Menu after login screen
     def mainMenu(self):
 
@@ -56,8 +51,9 @@ class TextUI:
             3: "Donate library items",
             4: "Search library events",
             5: "Register for library events",
-            6: "Volunteer at X Public Library",
-            7: "Get help from a librarian",
+            6: "Join a Book Club",
+            7: "Volunteer at X Public Library",
+            8: "Get help from a librarian",
             0: "Exit application"
         }
 
@@ -83,8 +79,10 @@ class TextUI:
             elif menuSelection == 5:
                 self.registerForEvent()
             elif menuSelection == 6:
-                self.addVolunteer()
+                self.joinBookClub()
             elif menuSelection == 7:
+                self.addVolunteer()
+            elif menuSelection == 8:
                 self.listPersonnel()
             elif menuSelection == 0:
                 print("Logging out...")
@@ -96,7 +94,7 @@ class TextUI:
     def printTable(self, rows, columnNames):
         i = 0
         while i < len(columnNames):
-            print("{0:20}".format(columnNames[i]), end='')
+            print("{0:31}".format(columnNames[i]), end='')
             i = i + 1
         print('')
 
@@ -104,8 +102,8 @@ class TextUI:
         for row in rows:
             while i < len(columnNames):
                 columnAttribute = str(row[i])
-                shortenedString = columnAttribute[:19]
-                print("{0:20}".format(shortenedString), end='')
+                shortenedString = columnAttribute[:30]
+                print("{0:31}".format(shortenedString), end='')
                 i = i + 1
             print('')
             i = 0
@@ -500,7 +498,7 @@ class TextUI:
     def searchLibEvents(self):
         tableName = "Event"
         userExit = False
-        rows = self.manager.listTable(tableName)
+        rows = self.manager.listTableOrderByDate(tableName)
         allColumnNames = self.manager.getColumnNamesFromTable(tableName)
 
         while not userExit:
@@ -532,9 +530,9 @@ class TextUI:
 
     def searchEventHandler(self, eventType, columnNames):
         if eventType.lower() == "type":
-            eventSearchKey = input("Please enter an event type:")
+            eventSearchKey = input("Please enter an event type: ")
         else:
-            eventSearchKey = input("Please enter an event name:")
+            eventSearchKey = input("Please enter an event name: ")
 
         rows = self.manager.searchForEvent(eventSearchKey, eventType)
         self.printTable(rows, columnNames)
@@ -578,9 +576,9 @@ class TextUI:
 
 
         while not validInput:
+            print("Index")
             TextMenu.printOptions(eventOptions)
-            userEventSelection = input(f'''\nPlease select the number of the event you wish to register for.
-                                               Press 0 to exit.\n''')
+            userEventSelection = input("Please select the index of the event you wish to register for or press 0 to exit: ")
 
             if int(userEventSelection) == 0 and userEventSelection.isnumeric():
                 return
@@ -616,4 +614,63 @@ class TextUI:
                 return False
             else:
                 print("Invalid option selected")
+
+            input("Press any key to continue: ")
+
+    def joinBookClub(self):
+        bookClubRegColumns = ['eventName', 'next_event_date', 'time', 'dayOfTheWeek']
+        bookClubRegTuples = self.manager.getUniqueBookClubs()
+        numOfBookClubs = len(bookClubRegTuples)
+        bookClubOptions = {index + 1: value for index, value in enumerate(bookClubRegTuples)}
+        validInput = False
+
+        print("Joining a book club will sign you up for all currently available book club events of the specified book club. ")
+
+        print('\n')
+        print("Index: ")
+        TextMenu.printOptions(bookClubOptions)
+        userClubSelection = input(f'''Please select the index of the club you wish to join or press 0 to exit: ''')
+        while not validInput:
+            if int(userClubSelection) == 0 and userClubSelection.isnumeric():
+                return
+            elif 1 <= int(userClubSelection) <= int(numOfBookClubs) and userClubSelection.isnumeric():
+                self.completeBookClubJoin(bookClubOptions[int(userClubSelection)])
+                validInput = True
+            else:
+                print(f'''Invalid option, please enter a number from 0 to {str(numOfBookClubs)}\n''')
+
+    def completeBookClubJoin(self, selectedBookClub):
+        validInput = False
+        while not validInput:
+            print(selectedBookClub)
+            joinOrNot =  input("\nWould you like to join the book club selected above?\n"
+                                  "Enter 'y' or 'n': ")
+            print('')
+
+            if joinOrNot.lower() == 'y':
+                registrationStatus = self.manager.registerForBookClubMeetings(self.userid, selectedBookClub)
+                if registrationStatus:
+                    print("You have successfully joined this club:")
+                    print(selectedBookClub)
+                    print('')
+                else:
+                    print("Sorry, there was an issue in joining this book club.")
+                    print('')
+                validInput = True
+            elif joinOrNot.lower() == 'n':
+                print("Registration cancelled.\n")
+                validInput = True
+            else:
+                print("Invalid option selected")
+
+            input("Press any key to continue: ")
+
+
+
+
+
+
+
+
+
 
