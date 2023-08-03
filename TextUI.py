@@ -94,7 +94,7 @@ class TextUI:
     def printTable(self, rows, columnNames):
         i = 0
         while i < len(columnNames):
-            print("{0:20}".format(columnNames[i]), end='')
+            print("{0:31}".format(columnNames[i]), end='')
             i = i + 1
         print('')
 
@@ -102,8 +102,8 @@ class TextUI:
         for row in rows:
             while i < len(columnNames):
                 columnAttribute = str(row[i])
-                shortenedString = columnAttribute[:19]
-                print("{0:20}".format(shortenedString), end='')
+                shortenedString = columnAttribute[:30]
+                print("{0:31}".format(shortenedString), end='')
                 i = i + 1
             print('')
             i = 0
