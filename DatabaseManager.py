@@ -233,7 +233,7 @@ class DatabaseManager:
 
         itemRows = cursor.fetchall()[0]
 
-        upcomingAddition = False
+        #if upcomingAddition, NOT available
         if (itemRows[0] == 1):
             return False
 
