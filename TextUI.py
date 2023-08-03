@@ -607,15 +607,19 @@ class TextUI:
                      print("You have successfully registered for this event:")
                      print(selectedEvent)
                      print()
+                     input("Press any key to continue: ")
+
                  return registrationStatus
 
             elif registerOrNot.lower() == 'n':
                 print("Registration cancelled.\n")
+                input("Press any key to continue: ")
                 return False
             else:
                 print("Invalid option selected")
+                input("Press any key to continue: ")
 
-            input("Press any key to continue: ")
+
 
     def joinBookClub(self):
         bookClubRegColumns = ['eventName', 'next_event_date', 'time', 'dayOfTheWeek']
