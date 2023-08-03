@@ -498,7 +498,7 @@ class TextUI:
     def searchLibEvents(self):
         tableName = "Event"
         userExit = False
-        rows = self.manager.listTable(tableName)
+        rows = self.manager.listTableOrderByDate(tableName)
         allColumnNames = self.manager.getColumnNamesFromTable(tableName)
 
         while not userExit:
@@ -530,9 +530,9 @@ class TextUI:
 
     def searchEventHandler(self, eventType, columnNames):
         if eventType.lower() == "type":
-            eventSearchKey = input("Please enter an event type:")
+            eventSearchKey = input("Please enter an event type: ")
         else:
-            eventSearchKey = input("Please enter an event name:")
+            eventSearchKey = input("Please enter an event name: ")
 
         rows = self.manager.searchForEvent(eventSearchKey, eventType)
         self.printTable(rows, columnNames)
@@ -576,9 +576,9 @@ class TextUI:
 
 
         while not validInput:
+            print("Index")
             TextMenu.printOptions(eventOptions)
-            userEventSelection = input(f'''\nPlease select the number of the event you wish to register for.
-                                               Press 0 to exit.\n''')
+            userEventSelection = input("Please select the index of the event you wish to register for or press 0 to exit: ")
 
             if int(userEventSelection) == 0 and userEventSelection.isnumeric():
                 return
@@ -615,6 +615,8 @@ class TextUI:
             else:
                 print("Invalid option selected")
 
+            input("Press any key to continue: ")
+
     def joinBookClub(self):
         bookClubRegColumns = ['eventName', 'next_event_date', 'time', 'dayOfTheWeek']
         bookClubRegTuples = self.manager.getUniqueBookClubs()
@@ -622,10 +624,12 @@ class TextUI:
         bookClubOptions = {index + 1: value for index, value in enumerate(bookClubRegTuples)}
         validInput = False
 
+        print("Joining a book club will sign you up for all currently available book club events of the specified book club. ")
+
         print('\n')
+        print("Index: ")
         TextMenu.printOptions(bookClubOptions)
-        userClubSelection = input(f'''\nPlease select the number of the club you wish to join.
-                                                       Press 0 to exit.\n''')
+        userClubSelection = input(f'''Please select the index of the club you wish to join or press 0 to exit: ''')
         while not validInput:
             if int(userClubSelection) == 0 and userClubSelection.isnumeric():
                 return
@@ -659,6 +663,7 @@ class TextUI:
             else:
                 print("Invalid option selected")
 
+            input("Press any key to continue: ")
 
 
 

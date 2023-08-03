@@ -24,6 +24,14 @@ class DatabaseManager:
         allRows = cursor.fetchall()
         return allRows
 
+    def listTableOrderByDate(self, tableName):
+        cursor = self.connection.cursor()
+        sqlListTableContents = f'''SELECT * FROM {tableName} ORDER BY eventDateTime'''
+        cursor.execute(sqlListTableContents)
+
+        allRows = cursor.fetchall()
+        return allRows
+
 
     def close_connection(self):
         self.connection.close()
