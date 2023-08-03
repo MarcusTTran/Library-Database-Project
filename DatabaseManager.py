@@ -235,7 +235,7 @@ class DatabaseManager:
 
         upcomingAddition = False
         if (itemRows[0] == 1):
-            upcomingAddition = True
+            return False
 
         #if not borrowRows and not upcomingAddition:
         if not borrowRows:

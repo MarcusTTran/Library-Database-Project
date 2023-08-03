@@ -94,16 +94,24 @@ class TextUI:
     def printTable(self, rows, columnNames):
         i = 0
         while i < len(columnNames):
-            print("{0:20}".format(columnNames[i]), end='')
+            if (i == 1):
+                print("{0:30}".format(columnNames[i]), end='')
+            else:
+                print("{0:20}".format(columnNames[i]), end='')
             i = i + 1
         print('')
 
         i = 0
         for row in rows:
             while i < len(columnNames):
-                columnAttribute = str(row[i])
-                shortenedString = columnAttribute[:19]
-                print("{0:20}".format(shortenedString), end='')
+                if (i == 1):
+                    columnAttribute = str(row[i])
+                    shortenedString = columnAttribute[:29]
+                    print("{0:30}".format(shortenedString), end='')
+                else:
+                    columnAttribute = str(row[i])
+                    shortenedString = columnAttribute[:19]
+                    print("{0:20}".format(shortenedString), end='')
                 i = i + 1
             print('')
             i = 0
@@ -576,7 +584,7 @@ class TextUI:
 
 
         while not validInput:
-            print("Index")
+            print("Index: ")
             TextMenu.printOptions(eventOptions)
             userEventSelection = input("Please select the index of the event you wish to register for or press 0 to exit: ")
 
